@@ -1,0 +1,377 @@
+var downloader = {
+	vw: 0,
+	downloadingUrl: 'https://s38273883.facepc.net/imgs/2019_11_25_14_23_18_arrows down line.png',
+	pauseUrl: 'https://s38273883.facepc.net/imgs/2019_11_25_17_39_59_pause.png',
+	finishedUrl: 'https://s38273883.facepc.net/imgs/2019_11_25_17_35_33_stop.png',
+	lastUrl: '',
+	ar: [],
+	dilogVideoList: {},
+	downloadList: {},
+
+	siteName: 'Facebook',
+	videoType: {
+		'.mp4': '',
+	},
+	expList: {},
+
+	throwExp: function(options){
+		var self = this;
+
+		if(self.expList[options.etype]){
+			return;
+		}
+
+		if(options.etype === '001'){
+			options.reason = '未获取到视频信息 data-store';
+		}
+
+		if(options.reason != ''){
+			self.expList[options.etype] = options.reason;
+		}
+		
+		options['from'] = self.siteName;
+	},
+
+	checkFileType: function(codeName){
+		var self = this;
+		var ftype = codeName.substr(codeName.lastIndexOf('.'));
+
+		return self.videoType.hasOwnProperty(ftype);
+	},
+		
+	getUrlCode: function(link, tn){
+		var arr = link.split('?');
+		var mp4 = arr[0].substr(arr[0].lastIndexOf('/') + 1);
+
+		return 'ios-' + tn + '-' + mp4;
+	},
+		
+	getBtns: function(){
+		var btns = document.getElementsByClassName('x-fb-video-btn') || [];
+		
+		return btns.length;
+	},
+		
+	createStyle: function(){
+		var styleEl = null;
+		var sty = null;
+		if(document.getElementById('x-v-btn')){
+			return;
+		}
+		
+		styleEl = document.createElement('style');
+		styleEl.id = 'x-v-btn';
+		sty = '.x-fb-video-btn{' +
+			'font-size: 14px; width: 3em; height: 3em; background: red; border-radius: 50%; overflow: hidden;' +
+			'position: absolute; right: 1em; bottom: 3em; z-index: 99999;' +
+			'}' +
+			'.x-fb-video-btn .img-container{' +
+			'width: 1.5em;' +
+			'height: 1.5em;' +
+			'padding: 0.75em;' +
+			'}' +
+			'.x-fb-video-btn .img-container img{' +
+			'display: block;' +
+			'width: 1.5em;' +
+			'height: 1.5em;' +
+			'}' +
+			'.x-fb-video-btn.download-status .img-container{' +
+			'margin-top: -2.25em;' +
+			'}' +
+			'.x-fb-video-btn.download-status.start .img-container{' +
+			'margin-top: 2.25em;' +
+			'transition: all 1.5s;' +
+			'}';
+		styleEl.innerHTML = sty;
+		
+		document.body.appendChild(styleEl);
+	},
+		
+	start: function(code){
+		var self = this;
+		
+		if(self.downloadList[code]){
+			if(self.downloadList[code].status === 'finished' || self.downloadList[code].status === 'downloading'){
+				return;
+			}
+		}else{
+			return;
+		}
+		
+		self.downloadList[code].status = 'downloading';
+		
+		var go = function(code){
+			self.downloadList[code].el.className = 'x-fb-video-btn download-status start';
+			self.downloadList[code].el.childNodes[0].childNodes[0].src = self.downloadingUrl;
+			
+			setTimeout(function(){
+				if(self.downloadList[code].status === 'downloading'){
+					self.downloadList[code].el.className = 'x-fb-video-btn download-status';
+					setTimeout(function(){
+						go(code);
+					}, 30);
+				}else{
+					self.finished(code);
+				}
+			}, 1400);
+		};
+		go(code);
+	},
+		
+	stop: function(code){
+		var self = this;
+		
+		if(!self.downloadList[code]){
+			return;
+		}
+		
+		self.downloadList[code].el.className = 'x-fb-video-btn';
+		self.downloadList[code].el.childNodes[0].childNodes[0].src = self.finishedUrl;
+		self.downloadList[code].status = 'finished';
+	},
+		
+	finished: function(code){
+		
+		var self = this;
+		if(!self.downloadList[code]){
+			return;
+		}
+		
+		self.downloadList[code].el.className = 'x-fb-video-btn';
+		self.downloadList[code].el.childNodes[0].childNodes[0].src = self.downloadingUrl;
+		self.downloadList[code].status = 'download';
+	},
+		
+	pause: function(code){
+		var self = this;
+		return;
+		if(!self.downloadList[code]){
+			return;
+		}
+		
+		self.downloadList[code].el.className = 'x-fb-video-btn';
+		self.downloadList[code].el.childNodes[0].childNodes[0].src = self.pauseUrl;
+		self.downloadList[code].status = 'pause';
+	},
+		
+	createButton: function(opts, pos){
+		var self = this;
+		
+		var btn = document.createElement('div');
+		btn.className="x-fb-video-btn";
+
+		if(!opts.parent){
+			return;
+		}
+
+		btn.style.bottom = opts.parent.clientWidth < downloader.vw / 2 ? '5px' : pos;
+		
+		self.downloadList[opts.code].el = btn;
+		self.downloadList[opts.code].trackingNodes = opts.trackingNodes || 0;
+		self.downloadList[opts.code].link = opts.vlink;
+		
+		btn.addEventListener('click', function(e){
+			e.stopPropagation();
+			
+			if(self.downloadList[opts.code]){
+				switch(self.downloadList[opts.code].status){
+					case 'download':
+						window.webkit.messageHandlers.downloader.postMessage({"link":self.downloadList[opts.code].link, "code":opts.code});
+						break;
+					case 'pause':
+						window.webkit.messageHandlers.downloader.postMessage({"link":self.downloadList[opts.code].link, "code":opts.code});
+						break;
+					case 'downloading':
+						break;
+					case 'finished':
+						break;
+					default:
+						self.downloadList[opts.code].status = 'downloading';
+						self.start(opts.code);
+						window.webkit.messageHandlers.downloader.postMessage({"link":self.downloadList[opts.code].link, "code":opts.code});
+						break;
+				}
+			}
+		});
+		
+		var imgHtml = '<div class="img-container">' +
+		'<img src="https://s38273883.facepc.net/imgs/2019_11_25_14_23_18_arrows down line.png" />' +
+		'</div>';
+		
+		var p4 = opts.parent.parentNode.parentNode.parentNode;
+		var p3 = opts.parent.parentNode.parentNode;
+		var p2 = opts.parent.parentNode;
+		btn.innerHTML = imgHtml;
+		if(opts.parent.clientWidth < p4.clientWidth / 3){
+			p3.style.position = 'relative';
+		}
+		if(opts.parent.clientWidth < p4.clientWidth / 2 && opts.parent.clientWidth > p4.clientWidth / 3){
+			p4.style.position = 'relative';
+		}
+
+		p2.style.pointerEvents = 'auto';
+		p2.appendChild(btn);
+		
+	},
+		
+	preLoadImg: function(){
+		var self = this;
+		
+		var d = new Image();
+		d.src = self.downloadingUrl;
+		
+		var p = new Image();
+		p.src = self.pauseUrl;
+		
+		var f = new Image();
+		f.src = self.finishedUrl;
+	},
+		
+	initDownloadList: function(code){
+		var self = this;
+		
+		self.downloadList[code] = {el: null, status: 'download', link: '', trackingNodes: ''};
+	},
+		
+	setModalDialog: function(){
+		var self = this;
+		var modalDialog = document.getElementById('modalDialog');
+		var dilogVideoArr = null;
+		
+		if(modalDialog && modalDialog.style.display === 'none'){
+			return;
+		}
+
+		dilogVideoArr = document.querySelectorAll('#modalDialogView video');
+		if(dilogVideoArr.length < 1){
+			return;
+		}
+		
+		for(var j = 0; j < dilogVideoArr.length; j++){
+			(function(videoTag){
+				try{
+					var code = self.getUrlCode(videoTag.src, videoTag.trackingNodes);
+					if(self.downloadList[code]){
+						return false;
+					}
+				}catch(e){
+					self.throwExp({
+						etype: '100',
+						reason: videoTag.innerHTML
+					});
+					return false;
+				}
+
+				self.initDownloadList(code);
+				self.createButton({"parent": videoTag, "code": code, "vlink": videoTag.src}, '30%');
+				
+			})(dilogVideoArr[j]);
+		}
+	},
+		
+	clearBtns: function(){
+		var self = this;
+		var btns = document.querySelectorAll('.x-fb-video-btn');
+		
+		for(var i = 0; i < btns.length; i++){
+			(function(btn){
+				var parent = btn.parentNode;
+				parent.removeChild(btn);
+			})(btns[i]);
+		}
+		self.downloadList = {};
+	},
+		
+	init: function(){
+		var self = this;
+		var currentUrl = location.href;
+		
+		self.preLoadImg();
+		
+		self.createStyle();
+		
+		self.setModalDialog();
+		
+		self.ar = document.querySelectorAll('[data-sigil="inlineVideo"]');
+		var btnAr = document.querySelectorAll('.x-fb-video-btn');
+		var btnCount = 0;
+
+		if(self.ar.length < 1){
+			return;
+		}
+
+		if(document.body){
+			self.vw = document.body.clientWidth || document.documentElement.clientWidth;
+		}
+
+		for(var item in self.downloadList){
+			btnCount ++;
+		}
+
+		if(btnCount > btnAr.length){
+			self.clearBtns();
+		}else if(self.lastUrl !== currentUrl){
+			self.clearBtns();
+		}
+		self.lastUrl = currentUrl;
+		
+		for(var i = 0; i < self.ar.length; i++){
+			(function(dataStoreEl){
+				var code = '';
+				var videoStoreObj = '';
+				var videoStoreStr = dataStoreEl.getAttribute('data-store');
+
+				if(!videoStoreStr){
+					self.throwExp({
+						etype: '001',
+						reason: ''
+					});
+					return false;
+				}
+
+				try{
+					videoStoreObj = JSON.parse(videoStoreStr);
+					if(videoStoreObj.src && videoStoreObj.trackingNodes){
+						code = self.getUrlCode(videoStoreObj.src, videoStoreObj.trackingNodes);
+						if(!self.checkFileType(code)){
+							self.throwExp({
+								etype: '003', 
+								reason: videoStoreStr
+							});
+							return false;
+						}
+					}else{
+						self.throwExp({
+							etype: '002', 
+							reason: videoStoreStr
+						});
+						return false;
+					}
+				}catch(e){
+					self.throwExp({
+						etype: '700', 
+						reason: e
+					});
+					return false;
+				}
+
+				if(self.downloadList[code]){
+					return false;
+				}
+				
+				self.initDownloadList(code);
+			 	self.createButton({"parent": dataStoreEl, "code": code, "vlink": videoStoreObj.src, "trackingNodes": videoStoreObj.trackingNodes}, '4rem');
+			})(self.ar[i]);
+		}
+	}
+};
+
+window.refInter = window.refInter || null;
+function run(){
+	clearInterval(window.refInter);
+	
+	window.refInter = setInterval(function(){
+		downloader.init();
+	}, 700);
+}
+run();

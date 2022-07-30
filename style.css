@@ -1,0 +1,168 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background: #f6f9ff;
+  height: 100vh;
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  color: #434343;
+
+  font-size: 16px;
+}
+button:hover {
+  cursor: pointer;
+}
+.logo {
+  width: 75px;
+  height: 55px;
+}
+
+.logo img {
+  width: 100%;
+}
+head h1 {
+  color: #ffffff;
+  background: #000000;
+  font-size: 200px;
+  font-weight: bold;
+  font-family: Arial;
+  text-transform: uppercase;
+}
+main.cards {
+  display: flex;
+  padding: 32px;
+}
+
+main.cards section.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  max-height: 468px;
+  margin-left: 32px;
+}
+
+main.cards section.card:first-child {
+  margin-left: 0;
+}
+
+main.cards section.card .icon {
+  width: 64px;
+  height: 64px;
+}
+
+main.cards section.card img {
+  width: 100%;
+}
+
+main.cards section.card h3 {
+  font-size: 100%;
+  margin: 16px 0;
+}
+
+main.cards section.card span {
+  font-weight: 300;
+  max-width: 240px;
+  font-size: 80%;
+  margin-bottom: 16px;
+}
+
+main.cards section.card button {
+  padding: 0.5rem 1rem;
+  text-transform: uppercase;
+  border-radius: 32px;
+  border: 0;
+  cursor: pointer;
+  font-size: 80%;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 16px 0;
+}
+
+main.cards section.card.contact button {
+  background: linear-gradient(to right, #9f66ff, #dfcbff);
+}
+main.cards section.card.shop button {
+  background: linear-gradient(to right, #3e8aff, #bbdeff);
+}
+main.cards section.card.about button {
+  background: linear-gradient(to right, #fe5f8f, #ffc7d9);
+}
+
+main.cards section.card.contact {
+  box-shadow: 20px 20px 50px -30px #dbc4ff;
+}
+main.cards section.card.shop {
+  box-shadow: 20px 20px 50px -30px #afd6ff;
+}
+main.cards section.card.about {
+  box-shadow: 20px 20px 50px -30px #ffc1d5;
+}
+
+@media screen and (max-width: 720px) {
+  main.cards {
+    flex-direction: column;
+  }
+
+  main.cards section.card {
+    margin-left: 0;
+    margin-bottom: 32px;
+  }
+
+  main.cards section.card:last-child {
+    margin-bottom: 0;
+  }
+
+  main.cards section.card button {
+    font-size: 70%;
+  }
+}
+
+/* Loader */
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loader h1 {
+  margin: 0;
+  padding: 0;
+  text-transform: uppercase;
+  font-size: 10em;
+  color: rgb(255, 255, 255, 0.1);
+  background-image: url(water-wave.jpg);
+  background-repeat: repeat-x;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: animate 10s linear infinite;
+}
+
+@keyframes animate {
+  0% {
+    background-position: left 0px top 20px;
+  }
+  40% {
+    background-position: left 800px top -60px;
+  }
+  80% {
+    background-position: left 1800px top -20px;
+  }
+  100% {
+    background-position: left 2400px top 20px;
+  }
+}
